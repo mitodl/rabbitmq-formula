@@ -1,0 +1,6 @@
+rabbitmq:
+  lookup:
+    pkg: myrabbitmq
+    conf_file: /usr/local/etc/rabbitmq/rabbitmq.conf
+  config:
+    key: othervalue

@@ -1,0 +1,9 @@
+name: rabbitmq
+os: RedHat, CentOS, Ubuntu, Debian
+os_family: RedHat, Debian
+version: 201604
+release: 1
+summary: SaltStack formula for RabbitMQ servers and clusters.
+description: SaltStack formula for RabbitMQ servers and clusters.
+top_level_dir: rabbitmq
+recommended: 

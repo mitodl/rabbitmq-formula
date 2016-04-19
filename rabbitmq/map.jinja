@@ -1,0 +1,14 @@
+{% set rabbitmq = salt['grains.filter_by']({
+    'default': {
+        'pkg': 'rabbitmq',
+        'service': 'rabbitmq',
+        'conf_file': '/etc/rabbitmq/rabbitmq.conf',
+        'config': {
+            'key': 'value',
+        },
+    },
+    'Debian': {
+    },
+    'RedHat': {
+    },
+}, grain='os_family', merge=salt['pillar.get']('rabbitmq:lookup'), base='default') %}
