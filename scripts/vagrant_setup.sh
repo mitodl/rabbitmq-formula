@@ -18,4 +18,5 @@ base:
 echo "\
 base:
   '*':
-    - rabbitmq" | sudo tee /srv/salt/top.sls
+    - rabbitmq
+    - rabbitmq.tests" | sudo tee /srv/salt/top.sls

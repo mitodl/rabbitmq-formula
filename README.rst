@@ -2,7 +2,7 @@
 rabbitmq
 ========
 
-SaltStack formula for RabbitMQ servers and clusters.
+SaltStack formula for deploying and managing RabbitMQ
 
 .. note::
 

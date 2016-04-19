@@ -1,14 +1,23 @@
 {% set rabbitmq = salt['grains.filter_by']({
     'default': {
-        'pkg': 'rabbitmq',
-        'service': 'rabbitmq',
+        'version': '3.6.1-1',
+        'pkgs': [
+            'erlang-base',
+            'erlang-nox'
+        ],
+        'service': 'rabbitmq-server',
         'conf_file': '/etc/rabbitmq/rabbitmq.conf',
         'config': {
             'key': 'value',
         },
+        'rabbitmq-version': '3.6.1-1'
     },
     'Debian': {
+        'esl_repo_pkg': 'erlang-solutions_1.0_all.deb',
+        'pkg_suffix': '_all.deb',
     },
     'RedHat': {
+        'esl_repo_pkg': 'erlang-solutions-1.0-1.noarch.rpm',
+        'pkg_suffix': '.noarch.rpm',
     },
 }, grain='os_family', merge=salt['pillar.get']('rabbitmq:lookup'), base='default') %}
