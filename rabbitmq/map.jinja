@@ -10,7 +10,14 @@
         'config': {
             'key': 'value',
         },
-        'rabbitmq-version': '3.6.1-1'
+        'plugins': [
+            {'name': 'rabbitmq_management',
+             'state': 'enabled'},
+            {'name': 'rabbitmq_clusterer',
+             'state': 'enabled',
+             'package_name': 'rabbitmq_clusterer-3.6.x-667f92b0.ez',
+             'package_hash': 'sha256=615b4029d33080cca860cee2c0ac2ca60efcfb61e9dda68ab69f6eaa42b533fe'}
+        ]
     },
     'Debian': {
         'esl_repo_pkg': 'erlang-solutions_1.0_all.deb',

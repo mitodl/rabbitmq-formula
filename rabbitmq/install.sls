@@ -12,7 +12,7 @@ install_erlang_pkgs:
         - pkg: install_erlang_solutions_repository
     - update: True
 
-rabbitmq:
+install_rabbitmq_server:
   pkg.installed:
     - sources:
         - rabbitmq-server: http://www.rabbitmq.com/releases/rabbitmq-server/v{{ rabbitmq.version.split('-')[0] }}/rabbitmq-server_{{ rabbitmq.version }}{{ rabbitmq.pkg_suffix }}
@@ -22,4 +22,20 @@ rabbitmq:
     - name: {{ rabbitmq.service }}
     - enable: True
     - require:
-      - pkg: rabbitmq
+      - pkg: install_rabbitmq_server
+
+enable_rabbitmq_env_tool:
+  file.symlink:
+    - name: /usr/local/bin/rabbitmq-env
+    - target: /usr/lib/rabbitmq/bin/rabbitmq-env
+    - makedirs: True
+    - require:
+        - pkg: install_rabbitmq_server
+
+enable_rabbitmq_plugin_tool:
+  file.symlink:
+    - name: /usr/local/bin/rabbitmq-plugins
+    - target: /usr/lib/rabbitmq/bin/rabbitmq-plugins
+    - makedirs: True
+    - require:
+        - pkg: install_rabbitmq_server

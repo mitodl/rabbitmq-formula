@@ -6,6 +6,11 @@ SaltStack formula for deploying and managing RabbitMQ
 
 .. note::
 
+   This formula takes advantage of the TestInfra state module found in the MIT ODL
+   `salt-extensions <https://github.com/mitodl/salt-extensions`_ repository.
+
+.. note::
+
     See the full `Salt Formulas installation and usage instructions
     <http://docs.saltstack.com/en/latest/topics/development/conventions/formulas.html>`_.
 
@@ -19,12 +24,17 @@ Available states
 ``rabbitmq``
 ------------
 
-TODO - add description of this state
+Installs and configures RabbitMQ server based on pillar data.
 
-``rabbitmq.conf``
------------------
+``rabbitmq.install``
+--------------------
 
-TODO - add description of this state
+Install RabbitMQ server and make sure it is running
+
+``rabbitmq.configure``
+----------------------
+
+Configure RabbitMQ based on pillar data.
 
 
 Template

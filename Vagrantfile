@@ -38,6 +38,8 @@ Vagrant.configure(2) do |config|
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
   # config.vm.synced_folder "../data", "/vagrant_data"
+  config.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: ".git"
+  config.vm.synced_folder "../salt-extensions/extensions", "/srv/salt", type: "rsync", rsync__exclude: ".git"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -69,10 +71,9 @@ Vagrant.configure(2) do |config|
   #   sudo apt-get install -y apache2
   # SHELL
   config.vm.provision "shell", path: "scripts/vagrant_setup.sh"
-  config.vm.provision "shell", inline: "sudo apt-get -y install python-pip python python-dev git"
-  config.vm.provision "shell", inline: "sudo pip install gitpython testinfra"
+  config.vm.provision "shell", inline: "sudo apt-get -y install python-pip python git"
+  config.vm.provision "shell", inline: "sudo pip install testinfra"
   config.vm.provision :salt do |salt|
-    salt.minion_config = "minion.conf"
     salt.bootstrap_options = '-U -Z'
     salt.masterless = true
     salt.run_highstate = true

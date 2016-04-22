@@ -5,7 +5,7 @@ test_install_erlang_solutions_repository:
 
 test_install_erlang_pkgs:
   testinfra.package:
-    - name: erlang-nox
+    - name: erlang-base
     - is_installed: True
 
 test_rabbitmq_pkg:
@@ -21,3 +21,17 @@ test_rabbitmq_service:
     - name: rabbitmq-server
     - is_running: True
     - is_enabled: True
+
+test_rabbitmq_env_tool:
+  testinfra.file:
+    - name: /usr/local/bin/rabbitmq-env
+    - is_file: True
+    - exists: True
+    - is_symlink: True
+
+test_rabbitmq_plugin_tool:
+  testinfra.file:
+    - name: /usr/local/bin/rabbitmq-plugins
+    - is_file: True
+    - exists: True
+    - is_symlink: True
