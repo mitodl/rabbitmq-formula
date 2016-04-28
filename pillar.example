@@ -1,6 +1,19 @@
 rabbitmq:
   lookup:
-    pkg: myrabbitmq
-    conf_file: /usr/local/etc/rabbitmq/rabbitmq.conf
-  config:
-    key: othervalue
+  configuration:
+    rabbit:
+      cluster_partition_handling: autoheal
+  users:
+    - name: rabbituser
+      state: present
+      settings:
+        tags:
+          - some
+          - tags
+        password: Ch@nge3m3!
+  vhosts:
+    - name: rabbitvhost
+      state: present
+      settings:
+        user: rabbituser
+        owner: rabbituser

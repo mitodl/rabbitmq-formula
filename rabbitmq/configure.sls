@@ -1,16 +1,39 @@
 #!pydsl
 from __future__ import division
-import logging
-logging.basicConfig()
-log = logging.getLogger(__name__)
 
+import re
+import socket
+import collections
 from bisect import bisect
 
+include('rabbitmq.service')
+
+
+def update(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.Mapping):
+            r = update(d.get(k, {}), v)
+            d[k] = r
+        elif isinstance(v, list):
+            d[k] = d.get(k, [])
+            d[k] += v
+        else:
+            d[k] = u[k]
+    return d
+
+
+def is_ipaddr(addr_string):
+    try:
+        socket.inet_pton(socket.AF_INET, addr_string)
+    except (AttributeError, OSError, socket.error):
+        try:
+            socket.inet_pton(socket.AF_INET6, addr_string)
+        except (AttributeError, OSError, socket.error):
+            return False
+    return True
+
+
 def determine_ram_limit():
-    # TODO: make this overridable by pillar data
-    pillar_limit = __salt__['pillar.get']('rabbitmq:ram_limit')
-    if pillar_limit:
-        return pillar_limit
     MINIMUM_RAM = 128
     system_ram = __grains__['mem_total']
     min_ratio = MINIMUM_RAM / system_ram
@@ -20,9 +43,10 @@ def determine_ram_limit():
 
 
 def determine_disk_limit():
-    # TODO: make this configurable as to the partition used
     MINIMUM_DISK = 2048
-    total_disk = __salt__['status.diskusage']('/')['/']['total'] / 1024 / 1024
+    rabbit_mountpoint = __salt__['pillar.get']('rabbitmq:mount_path', '/')
+    total_disk = __salt__['status.diskusage'](rabbit_mountpoint)[
+        rabbit_mountpoint]['total'] / 1024 / 1024
     system_ram = __grains__['mem_total']
     min_ratio = 2048 / total_disk
     max_ratio = 0.7
@@ -39,33 +63,59 @@ def determine_disk_limit():
 def gen_erlang_config(data):
     def recurse_settings(settings):
         conf_string = ''
-        print('CONF STRING IS: ', conf_string)
         for k, v in settings.items():
-            conf_string += '{{{key}, '.format(key=k)
+            conf_string += '{{{key}, '.format(key=k if not is_ipaddr(k)
+                                              else '"{}"'.format(k))
             if isinstance(v, dict):
                 conf_string += '{0}}},\n'.format(recurse_settings(v))
             if isinstance(v, (int, float)):
                 conf_string += '{value}}},\n'.format(value=v)
             if isinstance(v, str):
                 conf_string += '"{value}"}},\n'.format(value=v)
+            if isinstance(v, list):
+                conf_string += '[{vlist}]}},\n'.format(vlist=',\n  '.join([
+                    val if not isinstance(val, dict)
+                    else recurse_settings(val) for val in v
+                ]))
         return conf_string.strip(',\n')
     config = '['
-    for app, settings in data:
-        config += '{{{0}, ['.format(app)
+    for app, settings in data.items():
+        config += '{{{0},\n ['.format(app)
         config += recurse_settings(settings)
         config += ']},\n'
     config = config.strip(',\n')
-    config += ']'
+    config += '].'
     return config
 
 rabbit_conf = {
-    'vm_memory_high_watermark': determine_ram_limit(),
-    'vm_memory_high_watermark_paging_ratio': determine_ram_limit(),
-    'disk_free_limit': determine_disk_limit(),
+    'rabbit': {
+        'vm_memory_high_watermark': determine_ram_limit(),
+        'vm_memory_high_watermark_paging_ratio': determine_ram_limit(),
+        'disk_free_limit': determine_disk_limit(),
+    }
 }
+
+rabbit_pillar_conf = __salt__['pillar.get']('rabbitmq:configuration', {})
+
+rabbit_conf = update(rabbit_conf, rabbit_pillar_conf)
 
 rabbitmq_config = state('generate_rabbitmq_config_file').file.managed(
     name='/etc/rabbitmq/rabbitmq.config',
-    contents=gen_erlang_config([('rabbit', rabbit_conf)]),
+    contents=gen_erlang_config(rabbit_conf),
     makedirs=True
+).watch_in(service='rabbitmq_service_running')
+
+erlang_cookie = state('set_rabbitmq_erlang_cookie').file.managed(
+    name='/var/lib/rabbitmq/.erlang.cookie',
+    user='rabbitmq',
+    group='rabbitmq',
+    contents=__salt__['hashutil.md5_digest'](
+        str(__salt__['pillar.get']('rabbitmq_configuration', {})).lower()),
+    mode='0400'
 )
+
+kill_erlang = state('stop_erlang_vm').cmd.wait(
+    name='pkill beam'
+).watch(
+    file='set_rabbitmq_erlang_cookie'
+).watch_in(service='rabbitmq_service_running')

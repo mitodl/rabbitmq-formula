@@ -1,5 +1,9 @@
 {% from "rabbitmq/map.jinja" import rabbitmq with context %}
 
+include:
+  - .service
+  - .configure
+
 install_erlang_solutions_repository:
   pkg.installed:
     - sources:
@@ -18,11 +22,9 @@ install_rabbitmq_server:
         - rabbitmq-server: http://www.rabbitmq.com/releases/rabbitmq-server/v{{ rabbitmq.version.split('-')[0] }}/rabbitmq-server_{{ rabbitmq.version }}{{ rabbitmq.pkg_suffix }}
     - require:
         - pkg: install_erlang_pkgs
-  service.running:
-    - name: {{ rabbitmq.service }}
-    - enable: True
-    - require:
-      - pkg: install_rabbitmq_server
+    - require_in:
+        - service: rabbitmq_service_running
+        - file: generate_rabbitmq_config_file
 
 enable_rabbitmq_env_tool:
   file.symlink:

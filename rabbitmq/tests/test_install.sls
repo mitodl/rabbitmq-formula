@@ -16,12 +16,6 @@ test_rabbitmq_pkg:
         expected: 3.6.1-1
         comparison: eq
 
-test_rabbitmq_service:
-  testinfra.service:
-    - name: rabbitmq-server
-    - is_running: True
-    - is_enabled: True
-
 test_rabbitmq_env_tool:
   testinfra.file:
     - name: /usr/local/bin/rabbitmq-env
