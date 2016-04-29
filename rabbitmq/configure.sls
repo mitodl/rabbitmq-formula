@@ -10,6 +10,8 @@ include('rabbitmq.service')
 
 
 def update(d, u):
+    """Recursively merge two dictionaries. Adapted from
+    http://stackoverflow.com/a/3233356/5221054"""
     for k, v in u.items():
         if isinstance(v, collections.Mapping):
             r = update(d.get(k, {}), v)
@@ -34,6 +36,8 @@ def is_ipaddr(addr_string):
 
 
 def determine_ram_limit():
+    """Calculate the RAM Limit as recommended in
+    http://www.rabbitmq.com/production-checklist.html"""
     MINIMUM_RAM = 128
     system_ram = grains('mem_total')
     min_ratio = MINIMUM_RAM / system_ram
@@ -43,6 +47,8 @@ def determine_ram_limit():
 
 
 def determine_disk_limit():
+    """Calculate the disk limit as recommended in
+    http://www.rabbitmq.com/production-checklist.html"""
     MINIMUM_DISK = 2048
     rabbit_mountpoint = pillar('rabbitmq:mount_path', '/')
     total_disk = salt.status.diskusage(rabbit_mountpoint)[
@@ -61,6 +67,7 @@ def determine_disk_limit():
 
 
 def gen_erlang_config(data):
+    """Given a Python data structure, generate a valid Erlang config file"""
     def recurse_settings(settings):
         conf_string = ''
         for k, v in settings.items():
@@ -118,7 +125,7 @@ with Service('rabbitmq_service_running', 'watch_in'):
                  user='rabbitmq',
                  group='rabbitmq',
                  contents=salt.hashutil.md5_digest(
-                     str(pillar('rabbitmq_configuration',
+                     str(pillar('rabbitmq:configuration',
                                 {})).lower()),
                  mode='0400')
 
