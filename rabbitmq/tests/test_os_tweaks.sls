@@ -9,8 +9,8 @@ verify_file_descriptor_limit_configuration:
         comparison: is_
 
 verify_file_descriptor_limit:
-  testinfra.cmd:
+  testinfra.command:
     - name: sysctl fs.file-max
     - stdout:
-        expected: {{ rabbitmq.fd_limit}}
-        comparison: eq
+        expected: '{{ rabbitmq.fd_limit }}$'
+        comparison: search

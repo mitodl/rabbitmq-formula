@@ -3,6 +3,9 @@ rabbitmq:
   configuration:
     rabbit:
       cluster_partition_handling: autoheal
+  env:
+    RABBITMQ_BOOT_MODULE: rabbit_clusterer
+    RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "'-pa /usr/lib/rabbitmq/lib/rabbitmq_server-3.6.1/plugins/rabbitmq_clusterer-3.6.x-667f92b0.ez/ebin'"
   users:
     - name: rabbituser
       state: present

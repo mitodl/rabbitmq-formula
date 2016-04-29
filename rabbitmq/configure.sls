@@ -1,4 +1,4 @@
-#!pydsl
+#!pyobjects
 from __future__ import division
 
 import re
@@ -35,7 +35,7 @@ def is_ipaddr(addr_string):
 
 def determine_ram_limit():
     MINIMUM_RAM = 128
-    system_ram = __grains__['mem_total']
+    system_ram = grains('mem_total')
     min_ratio = MINIMUM_RAM / system_ram
     ram_ranges = [4096, 8192, 16384]
     ram_ratios = [0.75, 0.8, 0.85, 0.9]
@@ -44,10 +44,10 @@ def determine_ram_limit():
 
 def determine_disk_limit():
     MINIMUM_DISK = 2048
-    rabbit_mountpoint = __salt__['pillar.get']('rabbitmq:mount_path', '/')
-    total_disk = __salt__['status.diskusage'](rabbit_mountpoint)[
+    rabbit_mountpoint = pillar('rabbitmq:mount_path', '/')
+    total_disk = salt.status.diskusage(rabbit_mountpoint)[
         rabbit_mountpoint]['total'] / 1024 / 1024
-    system_ram = __grains__['mem_total']
+    system_ram = grains('mem_total')
     min_ratio = 2048 / total_disk
     max_ratio = 0.7
     ram_ranges = [8192, 32768]
@@ -95,27 +95,34 @@ rabbit_conf = {
     }
 }
 
-rabbit_pillar_conf = __salt__['pillar.get']('rabbitmq:configuration', {})
+rabbit_pillar_conf = pillar('rabbitmq:configuration', {})
 
 rabbit_conf = update(rabbit_conf, rabbit_pillar_conf)
 
-rabbitmq_config = state('generate_rabbitmq_config_file').file.managed(
-    name='/etc/rabbitmq/rabbitmq.config',
-    contents=gen_erlang_config(rabbit_conf),
-    makedirs=True
-).watch_in(service='rabbitmq_service_running')
+rabbitmq_config = File.managed('generate_rabbitmq_config_file',
+                               name='/etc/rabbitmq/rabbitmq.config',
+                               contents=gen_erlang_config(rabbit_conf),
+                               makedirs=True,
+                               watch_in=Service('rabbitmq_service_running'))
 
-erlang_cookie = state('set_rabbitmq_erlang_cookie').file.managed(
-    name='/var/lib/rabbitmq/.erlang.cookie',
-    user='rabbitmq',
-    group='rabbitmq',
-    contents=__salt__['hashutil.md5_digest'](
-        str(__salt__['pillar.get']('rabbitmq_configuration', {})).lower()),
-    mode='0400'
-)
+rabbitmq_env_contents = ['{k}={v}'.format(k=key, v=value) for key, value in
+                         pillar('rabbitmq:env', {}).items()]
 
-kill_erlang = state('stop_erlang_vm').cmd.wait(
-    name='pkill beam'
-).watch(
-    file='set_rabbitmq_erlang_cookie'
-).watch_in(service='rabbitmq_service_running')
+with Service('rabbitmq_service_running', 'watch_in'):
+    File.managed('generate_rabbitmq_env_file',
+                 name='/etc/rabbitmq/rabbitmq-env.conf',
+                 contents='\n'.join(rabbitmq_env_contents))
+
+    File.managed('set_rabbitmq_erlang_cookie',
+                 name='/var/lib/rabbitmq/.erlang.cookie',
+                 user='rabbitmq',
+                 group='rabbitmq',
+                 contents=salt.hashutil.md5_digest(
+                     str(pillar('rabbitmq_configuration',
+                                {})).lower()),
+                 mode='0400')
+
+    Cmd.wait('stop_erlang_vm',
+             name='pkill beam',
+             watch=[File('set_rabbitmq_erlang_cookie'),
+                    File('generate_rabbitmq_env_file')])

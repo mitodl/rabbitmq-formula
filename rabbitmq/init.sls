@@ -1,6 +1,6 @@
 include:
   - .install
   - .plugins
-  - .configure
   - .os_tweaks
+  - .configure
   - .permissions
