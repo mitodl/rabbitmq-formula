@@ -36,6 +36,25 @@ Install RabbitMQ server and make sure it is running
 
 Configure RabbitMQ based on pillar data.
 
+``rabbitmq.plugins``
+--------------------
+
+Install RabbitMQ plugins based on pillar data
+
+``rabbitmq.os_tweaks``
+----------------------
+
+Update OS level settings such as file descriptor limit for tuning of RabbitMQ performance
+
+``rabbitmq.permissions``
+------------------------
+
+Add users, vhosts, and policies to RabbitMQ server based on pillar data
+
+``rabbitmq.tests``
+------------------
+
+Uses testinfra module from mitodl/salt-extensions to verify proper state of server
 
 Template
 ========
