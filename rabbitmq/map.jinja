@@ -1,14 +1,28 @@
 {% set rabbitmq = salt['grains.filter_by']({
     'default': {
-        'pkg': 'rabbitmq',
-        'service': 'rabbitmq',
+        'version': '3.6.1-1',
+        'pkgs': [
+            'erlang-base',
+            'erlang-nox'
+        ],
+        'service': 'rabbitmq-server',
         'conf_file': '/etc/rabbitmq/rabbitmq.conf',
-        'config': {
-            'key': 'value',
-        },
+        'fd_limit': 100000,
+        'plugins': [
+            {'name': 'rabbitmq_management',
+             'state': 'enabled'},
+            {'name': 'rabbitmq_clusterer',
+             'state': 'enabled',
+             'package_name': 'rabbitmq_clusterer-3.6.x-667f92b0.ez',
+             'package_hash': 'sha256=615b4029d33080cca860cee2c0ac2ca60efcfb61e9dda68ab69f6eaa42b533fe'}
+        ]
     },
     'Debian': {
+        'esl_repo_pkg': 'erlang-solutions_1.0_all.deb',
+        'pkg_suffix': '_all.deb',
     },
     'RedHat': {
+        'esl_repo_pkg': 'erlang-solutions-1.0-1.noarch.rpm',
+        'pkg_suffix': '.noarch.rpm',
     },
 }, grain='os_family', merge=salt['pillar.get']('rabbitmq:lookup'), base='default') %}
