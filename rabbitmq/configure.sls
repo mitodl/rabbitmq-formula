@@ -129,6 +129,12 @@ with Service('rabbitmq_service_running', 'watch_in'):
                                 {})).lower()),
                  mode='0400')
 
+    # The rabbitmq-server command starts up the erlang VM but then when
+    # trying to call systemctl restart rabbitmq-server it uses rabbitmqctl
+    # which doesn't affect the state of the underlying erlang VM. In order
+    # to be able to change the erlang cookie and the erlang env variables the
+    # VM itself needs to be restarted. Since there is no service management
+    # layer for the VM specifically it is necessary to use the kill command.
     Cmd.wait('stop_erlang_vm',
              name='pkill beam',
              watch=[File('set_rabbitmq_erlang_cookie'),
