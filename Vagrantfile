@@ -71,9 +71,10 @@ Vagrant.configure(2) do |config|
   #   sudo apt-get install -y apache2
   # SHELL
   config.vm.provision "shell", path: "scripts/vagrant_setup.sh"
-  config.vm.provision "shell", inline: "sudo apt-get -y install python-pip python git"
-  config.vm.provision "shell", inline: "sudo pip install testinfra"
+  config.vm.provision "shell", inline: "sudo apt-get install -y python-dev git python-pip"
+  config.vm.provision "shell", inline: "sudo pip install testinfra gitpython"
   config.vm.provision :salt do |salt|
+    salt.minion_config = 'minion.conf'
     salt.bootstrap_options = '-U -Z'
     salt.masterless = true
     salt.run_highstate = true
