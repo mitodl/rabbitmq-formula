@@ -1,5 +1,6 @@
 rabbitmq:
-  lookup:
+  overrides:
+    version: 3.6.2-1
   configuration:
     rabbit:
       cluster_partition_handling: autoheal

@@ -1,6 +1,6 @@
 {% set rabbitmq = salt['grains.filter_by']({
     'default': {
-        'version': '3.6.1-1',
+        'version': '3.6.2-1',
         'pkgs': [
             'erlang-base',
             'erlang-nox'
@@ -25,4 +25,4 @@
         'esl_repo_pkg': 'erlang-solutions-1.0-1.noarch.rpm',
         'pkg_suffix': '.noarch.rpm',
     },
-}, grain='os_family', merge=salt['pillar.get']('rabbitmq:lookup'), base='default') %}
+}, grain='os_family', merge=salt.pillar.get('rabbitmq:overrides'), base='default') %}
