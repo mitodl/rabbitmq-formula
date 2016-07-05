@@ -4,7 +4,6 @@ from __future__ import division
 import re
 import socket
 import collections
-from bisect import bisect
 
 include('rabbitmq.service')
 
@@ -38,6 +37,7 @@ def is_ipaddr(addr_string):
 def determine_ram_limit():
     """Calculate the RAM Limit as recommended in
     http://www.rabbitmq.com/production-checklist.html"""
+    from bisect import bisect
     MINIMUM_RAM = 128
     system_ram = grains('mem_total')
     min_ratio = MINIMUM_RAM / system_ram
@@ -49,6 +49,7 @@ def determine_ram_limit():
 def determine_disk_limit():
     """Calculate the disk limit as recommended in
     http://www.rabbitmq.com/production-checklist.html"""
+    from bisect import bisect
     MINIMUM_DISK = 2048
     rabbit_mountpoint = pillar('rabbitmq:mount_path', '/')
     total_disk = salt.status.diskusage(rabbit_mountpoint)[
