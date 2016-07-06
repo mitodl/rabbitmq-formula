@@ -4,6 +4,7 @@ from __future__ import division
 import re
 import socket
 import collections
+from bisect import bisect
 
 include('rabbitmq.service')
 
@@ -37,7 +38,6 @@ def is_ipaddr(addr_string):
 def determine_ram_limit():
     """Calculate the RAM Limit as recommended in
     http://www.rabbitmq.com/production-checklist.html"""
-    from bisect import bisect
     MINIMUM_RAM = 128
     system_ram = grains('mem_total')
     min_ratio = MINIMUM_RAM / system_ram
@@ -49,7 +49,6 @@ def determine_ram_limit():
 def determine_disk_limit():
     """Calculate the disk limit as recommended in
     http://www.rabbitmq.com/production-checklist.html"""
-    from bisect import bisect
     MINIMUM_DISK = 2048
     rabbit_mountpoint = pillar('rabbitmq:mount_path', '/')
     total_disk = salt.status.diskusage(rabbit_mountpoint)[
@@ -113,6 +112,8 @@ rabbitmq_config = File.managed('generate_rabbitmq_config_file',
                                makedirs=True,
                                watch_in=Service('rabbitmq_service_running'))
 
+rabbitmq_external_configs = pillar('rabbitmq:external_configs', {})
+
 rabbitmq_env_contents = ['{k}={v}'.format(k=key, v=value) for key, value in
                          pillar('rabbitmq:env', {}).items()]
 
@@ -125,9 +126,10 @@ with Service('rabbitmq_service_running', 'watch_in'):
                  name='/var/lib/rabbitmq/.erlang.cookie',
                  user='rabbitmq',
                  group='rabbitmq',
-                 contents=salt.hashutil.md5_digest(
-                     str(pillar('rabbitmq:configuration',
-                                {})).lower()),
+                 contents=pillar('rabbitmq:erlang_cookie',
+                                 salt.hashutil.md5_digest(
+                                     str(pillar('rabbitmq:configuration',
+                                                {})).lower())),
                  mode='0400')
 
     # The rabbitmq-server command starts up the erlang VM but then when
@@ -140,3 +142,9 @@ with Service('rabbitmq_service_running', 'watch_in'):
              name='pkill beam',
              watch=[File('set_rabbitmq_erlang_cookie'),
                     File('generate_rabbitmq_env_file')])
+
+    for fname, config_data in rabbitmq_external_configs.items():
+        File.managed('rabbitmq_external_config_{0}'.format(fname),
+                     name='/etc/rabbitmq/rabbitmq.d/{0}.config'.format(fname),
+                     contents=gen_erlang_config(config_data),
+                     makedirs=True)

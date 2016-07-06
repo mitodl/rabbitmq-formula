@@ -4,6 +4,14 @@ rabbitmq:
   configuration:
     rabbit:
       cluster_partition_handling: autoheal
+  external_configs:
+    clusterer_plugin:
+      clusterer:
+        version: 1
+        nodes:
+          - rabbit@localhost
+        gospel:
+          node: rabbit@localhost
   env:
     RABBITMQ_BOOT_MODULE: rabbit_clusterer
     RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "'-pa /usr/lib/rabbitmq/lib/rabbitmq_server-3.6.1/plugins/rabbitmq_clusterer-3.6.x-667f92b0.ez/ebin'"
