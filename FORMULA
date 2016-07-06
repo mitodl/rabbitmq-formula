@@ -1,7 +1,7 @@
 name: rabbitmq
 os: RedHat, CentOS, Ubuntu, Debian
 os_family: RedHat, Debian
-version: 201604
+version: 201607
 release: 1
 summary: SaltStack formula for deploying and managing RabbitMQ
 description: SaltStack formula for deploying and managing RabbitMQ

@@ -78,16 +78,22 @@ def gen_erlang_config(data):
             if isinstance(v, (int, float)):
                 conf_string += '{value}}},\n'.format(value=v)
             if isinstance(v, str):
-                conf_string += '"{value}"}},\n'.format(value=v)
+                if v.startswith('@'): # Allow for handling of atoms
+                    conf_string += '{value}}},\n'.format(value=v.strip('@'))
+                else:
+                    conf_string += '"{value}"}},\n'.format(value=v)
             if isinstance(v, list):
                 temp_string = ''
                 for val in v:
                     if isinstance(val, str):
-                        temp_string += '"{0}",\n '.format(val)
+                        if val.startswith('@'):
+                            temp_string += '{0},\n '.format(val.strip('@'))
+                        else:
+                            temp_string += '"{0}",\n '.format(val)
                     elif isinstance(val, (int, float)):
                         temp_string += '{0},\n '.format(val)
                     elif isinstance(val, dict):
-                        temp_string += recurse_settings(val)
+                        temp_string += '{0},\n '.format(recurse_settings(val))
                 conf_string += '[{0}]}},\n'.format(temp_string.strip(',\n '))
         return conf_string.strip(',\n')
     config = '['

@@ -4,10 +4,9 @@ rabbitmq:
   configuration:
     rabbit:
       cluster_partition_handling: autoheal
-  external_configs:
-    clusterer_plugin:
-      clusterer:
-        version: 1
+    rabbitmq_clusterer:
+      config:
+        version: {{ salt.cmd.run('date +"%s"') }}
         nodes:
           - rabbit@localhost
         gospel:
