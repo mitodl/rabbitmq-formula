@@ -80,10 +80,15 @@ def gen_erlang_config(data):
             if isinstance(v, str):
                 conf_string += '"{value}"}},\n'.format(value=v)
             if isinstance(v, list):
-                conf_string += '[{vlist}]}},\n'.format(vlist=',\n  '.join([
-                    val if not isinstance(val, dict)
-                    else recurse_settings(val) for val in v
-                ]))
+                temp_string = ''
+                for val in v:
+                    if isinstance(val, str):
+                        temp_string += '"{0}",\n '.format(val)
+                    elif isinstance(val, (int, float)):
+                        temp_string += '{0},\n '.format(val)
+                    elif isinstance(val, dict):
+                        temp_string += recurse_settings(val)
+                conf_string += '[{0}]}},\n'.format(temp_string.strip(',\n '))
         return conf_string.strip(',\n')
     config = '['
     for app, settings in data.items():
