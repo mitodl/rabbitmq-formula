@@ -5,7 +5,7 @@ include:
 rabbitmq_user_{{ user.name }}_{{ user.state }}:
   rabbitmq_user.{{ user.state }}:
     - name: {{ user.name }}
-    {% for key, value in user.settings.items() %}
+    {% for key, value in user.get('settings', {}).items() %}
     - {{ key }}: {{ value }}
     {% endfor %}
     - require:
@@ -16,7 +16,7 @@ rabbitmq_user_{{ user.name }}_{{ user.state }}:
 rabbitq_vhost_{{ vhost.name }}_{{ vhost.state }}:
   rabbitmq_vhost.{{ vhost.state }}:
     - name: {{ vhost.name }}
-    {% for key, value in vhost.settings.items() %}
+    {% for key, value in vhost.get('settings', {}).items() %}
     - {{ key }}: {{ value }}
     {% endfor %}
     - require:
@@ -26,7 +26,7 @@ rabbitq_vhost_{{ vhost.name }}_{{ vhost.state }}:
 {% for policy in salt.pillar.get('rabbitmq:policies', []) %}
 rabbitq_policy_{{ policy.name }}_{{ policy.state }}:
   rabbitmq_policy.{{ policy.state }}:
-    {% for key, value in policy.settings.items() %}
+    {% for key, value in policy.get('settings', {}).items() %}
     - {{ key }}: {{ value }}
     {% endfor %}
     - require:
