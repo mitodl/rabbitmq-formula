@@ -1,5 +1,5 @@
 include:
-  - .service
+  - rabbitmq.service
 
 {% for user in salt.pillar.get('rabbitmq:users', []) %}
 rabbitmq_user_{{ user.name }}_{{ user.state }}:

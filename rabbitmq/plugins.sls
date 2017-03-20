@@ -1,8 +1,8 @@
 {% from "rabbitmq/map.jinja" import rabbitmq with context %}
 
 include:
-  - .configure
-  - .install
+  - rabbitmq.configure
+  - rabbitmq.install
 
 {% for plugin in rabbitmq.get('plugins', []) %}
 {% if plugin.get('package_name') %}

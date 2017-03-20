@@ -1,8 +1,8 @@
 {% from "rabbitmq/map.jinja" import rabbitmq with context %}
 
 include:
-  - .service
-  - .configure
+  - rabbitmq.service
+  - rabbitmq.configure
 
 install_erlang_solutions_repository:
   pkg.installed:
