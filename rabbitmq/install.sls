@@ -1,43 +1,44 @@
 {% from "rabbitmq/map.jinja" import rabbitmq with context %}
+{% set oscodename = salt.grains.get('oscodename') %}
+{% set os = salt.grains.get('os') %}
+{% set osmajorrelease = salt.grains.get('osmajorrelease') %}
+{% set os_family = salt.grains.get('os_family') %}
 
-include:
-  - rabbitmq.service
-  - rabbitmq.configure
+{% if os_family == 'Debian' %}
+{% set pkg_type = 'deb' %}
+{% elif os_family == 'RedHat' %}
+{% set pkg_type = 'rpm' %}
+{% endif %}
 
-install_erlang_solutions_repository:
+add_erlang_pkg_repo:
+  pkgrepo.managed:
+    - humanname: erlang-solutions
+    {% if os_family == 'Debian' %}
+    - name: deb https://packages.erlang-solutions.com/debian {{ oscodename }} contrib
+    - key_url: https://packages.erlang-solutions.com/debian/erlang_solutions.asc
+    {% elif os_family == 'RedHat' %}
+    - name: erlang
+    - baseurl: https://packages.erlang-solutions.com/rpm/{{ os.lower() }}/{{ osmajorrelease }}/x86_64
+    - gpgkey: https://packages.erlang-solutions.com/rpm/erlang_solutions.asc
+    {% endif %}
+    - gpgcheck: 1
+    - enabled: 1
+    - refresh_db: True
+
+install_esl_erlang_solutions:
   pkg.installed:
-    - sources:
-        - erlang-solutions: http://packages.erlang-solutions.com/{{ rabbitmq.esl_repo_pkg }}
-
-install_erlang_pkgs:
-  pkg.installed:
-    - pkgs: {{ rabbitmq.pkgs }}
+    - name: esl-erlang
+    - version: '{{ rabbitmq.erlang_version }}'
     - require:
-        - pkg: install_erlang_solutions_repository
-    - update: True
+        - pkgrepo: add_erlang_pkg_repo
+
+add_rabbitmq_pkg_repo:
+  cmd.run:
+    - name: curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.{{ pkg_type }}.sh | bash
 
 install_rabbitmq_server:
   pkg.installed:
-    - sources:
-        - rabbitmq-server: http://www.rabbitmq.com/releases/rabbitmq-server/v{{ rabbitmq.version.split('-')[0] }}/rabbitmq-server_{{ rabbitmq.version }}{{ rabbitmq.pkg_suffix }}
-    - require:
-        - pkg: install_erlang_pkgs
-    - require_in:
-        - service: rabbitmq_service_running
-        - file: generate_rabbitmq_config_file
-
-enable_rabbitmq_env_tool:
-  file.symlink:
-    - name: /usr/local/bin/rabbitmq-env
-    - target: /usr/lib/rabbitmq/bin/rabbitmq-env
-    - makedirs: True
-    - require:
-        - pkg: install_rabbitmq_server
-
-enable_rabbitmq_plugin_tool:
-  file.symlink:
-    - name: /usr/local/bin/rabbitmq-plugins
-    - target: /usr/lib/rabbitmq/bin/rabbitmq-plugins
-    - makedirs: True
-    - require:
-        - pkg: install_rabbitmq_server
+   - name: rabbitmq-server
+   - version: '{{ rabbitmq.version }}'
+   - require:
+        - cmd: add_rabbitmq_pkg_repo

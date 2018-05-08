@@ -4,3 +4,5 @@ rabbitmq_service_running:
   service.running:
     - name: {{ rabbitmq.service }}
     - enable: True
+    - watch:
+        - file: write_rabbitmq_config
