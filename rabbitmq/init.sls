@@ -3,4 +3,3 @@ include:
   - .plugins
   - .configure
   - .permissions
-  - .service

@@ -4,12 +4,6 @@
 {% set osmajorrelease = salt.grains.get('osmajorrelease') %}
 {% set os_family = salt.grains.get('os_family') %}
 
-{% if os_family == 'Debian' %}
-{% set pkg_type = 'deb' %}
-{% elif os_family == 'RedHat' %}
-{% set pkg_type = 'rpm' %}
-{% endif %}
-
 add_erlang_pkg_repo:
   pkgrepo.managed:
     - humanname: erlang-solutions
@@ -33,12 +27,23 @@ install_esl_erlang_solutions:
         - pkgrepo: add_erlang_pkg_repo
 
 add_rabbitmq_pkg_repo:
-  cmd.run:
-    - name: curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.{{ pkg_type }}.sh | bash
+  pkgrepo.managed:
+    - name: RabbitMQ
+    {% if os_family == 'Debian' %}
+    - name: deb https://dl.bintray.com/rabbitmq/debian {{ oscodename }} main
+    - key_url: https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc
+    {% elif os_family == 'RedHat' %}
+    - baseurl: https://bintray.com/rabbitmq/rpm/rabbitmq-server
+    - gpgkey: https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc
+    {% endif %}
+    - gpgcheck: 1
+    - enabled: 1
+    - refresh_db: True
 
 install_rabbitmq_server:
   pkg.installed:
    - name: rabbitmq-server
    - version: '{{ rabbitmq.version }}'
    - require:
-        - cmd: add_rabbitmq_pkg_repo
+        - pkg: install_esl_erlang_solutions
+        - pkgrepo: add_rabbitmq_pkg_repo
