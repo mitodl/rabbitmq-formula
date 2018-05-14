@@ -6,6 +6,11 @@ set_system_locale_for_rabbitmq:
   locale.system:
     - name: en_US.UTF-8
 
+write_erlang_cookie_for_rabbitmq:
+  file.managed:
+    - name: /var/lib/rabbitmq/.erlang.cookie
+    - contents_pillar: rabbitmq:erlang_cookie
+
 write_rabbitmq_config:
   file.managed:
     - name: {{ rabbitmq_config_dir }}/rabbitmq.conf
