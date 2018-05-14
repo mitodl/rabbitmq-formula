@@ -2,9 +2,9 @@
 {% set rabbitmq_config = salt.pillar.get('rabbitmq:configuration') %}
 {% set rabbitmq_config_dir = '/etc/rabbitmq' %}
 
-set_UTF-8_locale:
-  cmd.run:
-    - name: update-locale LC_ALL=en_US.UTF-8
+set_system_locale:
+  locale.system:
+    - name: en_US.UTF-8
 
 write_rabbitmq_config:
   file.managed:
