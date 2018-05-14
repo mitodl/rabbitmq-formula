@@ -2,6 +2,10 @@
 {% set rabbitmq_config = salt.pillar.get('rabbitmq:configuration') %}
 {% set rabbitmq_config_dir = '/etc/rabbitmq' %}
 
+set_system_locale_for_rabbitmq:
+  locale.system:
+    - name: en_US.UTF-8
+
 write_erlang_cookie_for_rabbitmq:
   file.managed:
     - name: /var/lib/rabbitmq/.erlang.cookie
