@@ -5,4 +5,4 @@ rabbitmq_service_running:
     - name: {{ rabbitmq.service }}
     - enable: True
     - watch:
-        - file: write_rabbitmq_config
+        - file: {{ rabbitmq_config_dir }}/rabbitmq.conf
